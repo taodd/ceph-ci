@@ -1,6 +1,7 @@
 from StringIO import StringIO
 import json
 import logging
+import re
 from textwrap import dedent
 from teuthology.orchestra.run import CommandFailedError
 from teuthology import misc
@@ -250,11 +251,9 @@ class KernelMount(CephFSMount):
         Return 2-tuple of osd_epoch, osd_epoch_barrier
         """
         osd_map = self._read_debug_file("osdmap")
-        lines = osd_map.split("\n")
-        epoch = int(lines[0].split()[1])
 
-        mds_sessions = self._read_debug_file("mds_sessions")
-        lines = mds_sessions.split("\n")
-        epoch_barrier = int(lines[2].split()[1].strip('"'))
-
-        return epoch, epoch_barrier
+        p = re.compile('^epoch (\d+) barrier (\d+) ')
+        m = p.search(osd_map)
+        epoch = int(m.group(1))
+        barrier = int(m.group(2))
+        return epoch, barrier
