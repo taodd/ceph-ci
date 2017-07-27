@@ -4700,7 +4700,13 @@ struct C_ExtentCmpRead : public Context {
   }
 
   void finish(int r) override {
-    fill_extent_ctx->complete(r);
+    if (r == -ENOENT) {
+      osd_op.rval = 0;
+      read_bl.clear();
+      delete fill_extent_ctx;
+    } else {
+      fill_extent_ctx->complete(r);
+    }
 
     if (osd_op.rval >= 0) {
       osd_op.rval = primary_log_pg->finish_extent_cmp(osd_op, read_bl);
@@ -4748,8 +4754,11 @@ int PrimaryLogPG::do_extent_cmp(OpContext *ctx, OSDOp& osd_op)
   read_op.op.extent.truncate_size = op.extent.truncate_size;
 
   int result = do_osd_ops(ctx, read_ops);
-  if (result < 0) {
-    derr << "do_extent_cmp do_osd_ops failed " << result << dendl;
+  if (result == -ENOENT) {
+    dout(20) << __func__ << " DNE" << dendl;
+    read_op.outdata.clear();
+  } else if (result < 0) {
+    derr << __func__ << " failed " << result << dendl;
     return result;
   }
   return finish_extent_cmp(osd_op, read_op.outdata);
