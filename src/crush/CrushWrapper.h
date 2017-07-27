@@ -899,7 +899,11 @@ public:
     }
     return 0;
   }
-  int adjust_item_weight(CephContext *cct, int id, int weight);
+  int adjust_item_weight(
+    CephContext *cct,
+    int id,
+    int weight,
+    bool update_weight_set = true);
   int adjust_item_weightf(CephContext *cct, int id, float weight) {
     int r = validate_weightf(weight);
     if (r < 0) {
@@ -1193,7 +1197,12 @@ public:
 		 int *items, int *weights, int *idout);
   int bucket_add_item(crush_bucket *bucket, int item, int weight);
   int bucket_remove_item(struct crush_bucket *bucket, int item);
-  int bucket_adjust_item_weight(CephContext *cct, struct crush_bucket *bucket, int item, int weight);
+  int bucket_adjust_item_weight(
+    CephContext *cct,
+    struct crush_bucket *bucket,
+    int item,
+    int weight,
+    bool update_weight_set = true);
 
   void finalize() {
     assert(crush);

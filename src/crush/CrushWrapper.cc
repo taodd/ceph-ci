@@ -444,7 +444,7 @@ int CrushWrapper::remove_item(CephContext *cct, int item, bool unlink_only)
 	  choose_args_adjust_item_weight(cct, p.second, item, weightv, nullptr);
 	}
 	bucket_remove_item(b, item);
-	adjust_item_weight(cct, b->id, b->weight);
+	adjust_item_weight(cct, b->id, b->weight, false);
 	ret = 0;
       }
     }
@@ -1210,7 +1210,11 @@ int CrushWrapper::get_item_weight_in_loc(int id, const map<string,string> &loc)
   return -ENOENT;
 }
 
-int CrushWrapper::adjust_item_weight(CephContext *cct, int id, int weight)
+int CrushWrapper::adjust_item_weight(
+  CephContext *cct,
+  int id,
+  int weight,
+  bool update_weight_set)
 {
   ldout(cct, 5) << "adjust_item_weight " << id << " weight " << weight << dendl;
   int changed = 0;
@@ -1220,7 +1224,11 @@ int CrushWrapper::adjust_item_weight(CephContext *cct, int id, int weight)
       continue;
     for (unsigned i = 0; i < b->size; i++) {
       if (b->items[i] == id) {
-	int diff = bucket_adjust_item_weight(cct, b, id, weight);
+	int diff = bucket_adjust_item_weight(cct,
+                                             b,
+                                             id,
+                                             weight,
+                                             update_weight_set);
 	ldout(cct, 5) << "adjust_item_weight " << id << " diff " << diff
 		      << " in bucket " << bidx << dendl;
 	adjust_item_weight(cct, -1 - bidx, b->weight);
@@ -1647,9 +1655,14 @@ int CrushWrapper::remove_rule(int ruleno)
   return 0;
 }
 
-int CrushWrapper::bucket_adjust_item_weight(CephContext *cct, crush_bucket *bucket, int item, int weight)
+int CrushWrapper::bucket_adjust_item_weight(
+  CephContext *cct,
+  crush_bucket *bucket,
+  int item,
+  int weight,
+  bool update_weight_set)
 {
-  if (cct->_conf->osd_crush_update_weight_set) {
+  if (cct->_conf->osd_crush_update_weight_set && update_weight_set) {
     unsigned position;
     for (position = 0; position < bucket->size; position++)
       if (bucket->items[position] == item)
