@@ -6591,6 +6591,7 @@ struct C_OnMapCommit : public Context {
     : osd(o), first(f), last(l), msg(m) {}
   void finish(int r) {
     osd->_committed_osd_maps(first, last, msg);
+    msg->put();
   }
 };
 
@@ -7107,7 +7108,6 @@ void OSD::_committed_osd_maps(epoch_t first, epoch_t last, MOSDMap *m)
   else if (do_restart)
     start_boot();
 
-  m->put();
 }
 
 void OSD::check_osdmap_features(ObjectStore *fs)
