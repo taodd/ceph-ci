@@ -2058,6 +2058,9 @@ private:
   }
   void ms_fast_dispatch(Message *m) {
     ms_dispatch(m);
+    if (!ms_dispatch(m)) {
+      m->put();
+    }
   }
 
   void handle_osd_op_reply(class MOSDOpReply *m);
