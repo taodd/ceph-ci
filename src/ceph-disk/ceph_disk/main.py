@@ -1397,6 +1397,7 @@ def check_journal_reqs(args):
     _, _, allows_journal = command([
         'ceph-osd', '--check-allows-journal',
         '-i', '0',
+        '--log-file', '$run_dir/$cluster-osd-check.log',
         '--cluster', args.cluster,
         '--setuser', get_ceph_user(),
         '--setgroup', get_ceph_group(),
@@ -1404,6 +1405,7 @@ def check_journal_reqs(args):
     _, _, wants_journal = command([
         'ceph-osd', '--check-wants-journal',
         '-i', '0',
+        '--log-file', '$run_dir/$cluster-osd-check.log',
         '--cluster', args.cluster,
         '--setuser', get_ceph_user(),
         '--setgroup', get_ceph_group(),
@@ -1411,6 +1413,7 @@ def check_journal_reqs(args):
     _, _, needs_journal = command([
         'ceph-osd', '--check-needs-journal',
         '-i', '0',
+        '--log-file', '$run_dir/$cluster-osd-check.log',
         '--cluster', args.cluster,
         '--setuser', get_ceph_user(),
         '--setgroup', get_ceph_group(),
